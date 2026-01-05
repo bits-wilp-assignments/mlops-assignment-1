@@ -1,0 +1,220 @@
+swagger: "2.0"
+info:
+  title: "Heart Disease Prediction API"
+  description: "API for predicting heart disease using machine learning models"
+  version: "1.0.0"
+  contact:
+    name: "MLOps Team - Group 57"
+    url: "https://github.com/bits-wilp-assignments/mlops-assignment-1"
+
+basePath: "/"
+schemes:
+  - "http"
+
+tags:
+  - name: "Health"
+    description: "Health check endpoints"
+  - name: "Prediction"
+    description: "Model prediction endpoints"
+  - name: "Model"
+    description: "Model information endpoints"
+
+paths:
+  /health:
+    get:
+      tags:
+        - "Health"
+      summary: "Health check endpoint"
+      description: "Verify the service is running and model is loaded"
+      responses:
+        200:
+          description: "Service is healthy and model is loaded"
+          schema:
+            type: "object"
+            properties:
+              status:
+                type: "string"
+                example: "healthy"
+              message:
+                type: "string"
+                example: "Service is running"
+        503:
+          description: "Service is unhealthy, model not loaded"
+          schema:
+            type: "object"
+            properties:
+              status:
+                type: "string"
+                example: "unhealthy"
+              message:
+                type: "string"
+                example: "Model not loaded"
+
+  /model-info:
+    get:
+      tags:
+        - "Model"
+      summary: "Get model information"
+      description: "Retrieve information about the loaded model"
+      responses:
+        200:
+          description: "Model information retrieved successfully"
+          schema:
+            type: "object"
+            properties:
+              model_uri:
+                type: "string"
+                example: "models:/heart_disease_best_model@production"
+                description: "MLflow model URI"
+              tracking_uri:
+                type: "string"
+                example: "http://localhost:5050"
+                description: "MLflow tracking server URI"
+              status:
+                type: "string"
+                example: "loaded"
+                description: "Model loading status"
+        503:
+          description: "Model not loaded"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "Model not loaded"
+
+  /predict:
+    post:
+      tags:
+        - "Prediction"
+      summary: "Make heart disease predictions"
+      description: "Predict heart disease based on patient data"
+      parameters:
+        - name: "body"
+          in: "body"
+          required: true
+          description: "Patient data for heart disease prediction"
+          schema:
+            type: "object"
+            properties:
+              instances:
+                type: "array"
+                items:
+                  type: "object"
+                  required:
+                    - age
+                    - sex
+                    - cp
+                    - trestbps
+                    - chol
+                    - fbs
+                    - restecg
+                    - thalach
+                    - exang
+                    - oldpeak
+                    - slope
+                    - ca
+                    - thal
+                  properties:
+                    age:
+                      type: "number"
+                      example: 63
+                      description: "Age in years"
+                    sex:
+                      type: "integer"
+                      example: 1
+                      description: "Sex (1 = male, 0 = female)"
+                    cp:
+                      type: "integer"
+                      example: 3
+                      description: "Chest pain type (0-3)"
+                    trestbps:
+                      type: "number"
+                      example: 145
+                      description: "Resting blood pressure (mm Hg)"
+                    chol:
+                      type: "number"
+                      example: 233
+                      description: "Serum cholesterol (mg/dl)"
+                    fbs:
+                      type: "integer"
+                      example: 1
+                      description: "Fasting blood sugar > 120 mg/dl (1 = true, 0 = false)"
+                    restecg:
+                      type: "integer"
+                      example: 0
+                      description: "Resting electrocardiographic results (0-2)"
+                    thalach:
+                      type: "number"
+                      example: 150
+                      description: "Maximum heart rate achieved"
+                    exang:
+                      type: "integer"
+                      example: 0
+                      description: "Exercise induced angina (1 = yes, 0 = no)"
+                    oldpeak:
+                      type: "number"
+                      example: 2.3
+                      description: "ST depression induced by exercise"
+                    slope:
+                      type: "integer"
+                      example: 0
+                      description: "Slope of peak exercise ST segment (0-2)"
+                    ca:
+                      type: "integer"
+                      example: 0
+                      description: "Number of major vessels colored by fluoroscopy (0-3)"
+                    thal:
+                      type: "integer"
+                      example: 1
+                      description: "Thalassemia (1 = normal, 2 = fixed defect, 3 = reversible defect)"
+      responses:
+        200:
+          description: "Successful prediction"
+          schema:
+            type: "object"
+            properties:
+              predictions:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    prediction:
+                      type: "integer"
+                      example: 1
+                      description: "Predicted class (0 = no disease, 1 = disease)"
+                    confidence:
+                      type: "number"
+                      example: 0.85
+                      description: "Prediction confidence"
+                    probabilities:
+                      type: "object"
+                      description: "Class probabilities"
+                      properties:
+                        class_0:
+                          type: "number"
+                          example: 0.15
+                        class_1:
+                          type: "number"
+                          example: 0.85
+        400:
+          description: "Bad request - invalid input"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+        503:
+          description: "Service unavailable - model not loaded"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"

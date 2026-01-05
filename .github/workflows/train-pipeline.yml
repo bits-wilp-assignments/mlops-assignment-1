@@ -1,0 +1,75 @@
+name: Training Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  training-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-train.txt
+
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$GITHUB_WORKSPACE/src" >> $GITHUB_ENV
+
+      - name: Run training tests
+        run: |
+          pytest test/training -v
+
+      - name: Split data
+        run: |
+          python -m src.training.split \
+            --data_path data/processed.cleveland.data \
+            --output_path data/processed \
+            --target_column num
+
+      - name: Preprocess and train models
+        run: |
+          python -m src.training.train \
+            --data_path data/processed \
+            --model_output_path models \
+            --use_scaling
+
+      - name: Evaluate models
+        run: |
+          python -m src.training.evaluate \
+            --data_path data/processed \
+            --lr_model_path models/logistic_regression_pipeline.pkl \
+            --rf_model_path models/random_forest_pipeline.pkl \
+            --output_best_model models/best_pipeline.pkl
+
+      - name: Validate and promote model
+        run: |
+          python -m src.training.validate \
+            --model_name heart_disease_best_model
+        continue-on-error: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: training-artifacts
+          path: |
+            data/processed/
+            models/
+            mlruns/
+            *.png
+          retention-days: 30
