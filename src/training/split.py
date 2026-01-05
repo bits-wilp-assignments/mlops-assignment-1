@@ -1,5 +1,6 @@
 import pandas as pd
 import argparse
+import os
 from sklearn.model_selection import train_test_split
 
 # Import centralized logging configuration
@@ -19,20 +20,20 @@ def load_data(path: str) -> pd.DataFrame:
     """
     # Try to read with headers first
     df = pd.read_csv(path)
-    
+
     # Check if columns match our expected header columns (case-insensitive)
     cols_lower = [str(c).lower() for c in df.columns]
     expected_lower = [c.lower() for c in HEADER_COLUMNS]
-    
+
     if cols_lower == expected_lower:
         # Has proper headers, return as is
         logger.info("Loaded data with existing headers")
         return df
-    
+
     # No proper headers - reload with header=None and assign column names
     df = pd.read_csv(path, header=None)
     df.columns = HEADER_COLUMNS
-    
+
     # Convert target column to binary (0 = no disease, 1-4 = disease present)
     df[TARGET_COLUMN] = df[TARGET_COLUMN].apply(lambda x: 1 if x > 0 else 0)
     logger.info("Loaded raw data and added column names")
@@ -84,6 +85,9 @@ def main():
     # Split into training and testing sets
     X_train, X_test, y_train, y_test = split_train_test(X, y, test_size=test_size, stratified_sample=STRATIFIED_SAMPLING, random_state=RANDOM_STATE)
     logger.info("Train-test split complete.")
+
+    # Create output directory if it doesn't exist
+    os.makedirs(args.output_path, exist_ok=True)
 
     # Save raw data splits (preprocessing will be done in pipeline during training)
     X_train.to_csv(f"{args.output_path}/X_train_raw.csv", index=False)

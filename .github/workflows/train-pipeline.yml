@@ -61,15 +61,3 @@ jobs:
           python -m src.training.validate \
             --model_name heart_disease_best_model
         continue-on-error: true
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: training-artifacts
-          path: |
-            data/processed/
-            models/
-            mlruns/
-            *.png
-          retention-days: 30
