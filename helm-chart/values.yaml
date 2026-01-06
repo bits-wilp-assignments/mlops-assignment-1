@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: bitshub4krishanu/heart-disease-api
-  pullPolicy: IfNotPresent
+  pullPolicy: always
   tag: "latest"
 
 service:
