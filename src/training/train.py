@@ -97,6 +97,10 @@ def main():
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     mlflow.set_experiment(args.experiment_name)
 
+    # Create the directory if it doesn't exist
+    if args.model_output_path and not os.path.exists(args.model_output_path):
+        os.makedirs(args.model_output_path, exist_ok=True)
+
     # Start parent pipeline run
     with mlflow.start_run(run_name="Heart_Disease_Pipeline") as parent_run:
         parent_run_id = parent_run.info.run_id
@@ -129,6 +133,8 @@ def main():
 
         # Save Logistic Regression pipeline
         lr_pipeline_path = f"{args.model_output_path}/logistic_regression_pipeline.pkl"
+        # Get the directory path from your lr_pipeline_path variable
+
         joblib.dump(best_lr_pipeline, lr_pipeline_path)
         logger.info(f"Logistic Regression pipeline saved to {lr_pipeline_path}")
 
