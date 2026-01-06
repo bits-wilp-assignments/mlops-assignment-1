@@ -6,10 +6,17 @@ image:
   tag: "latest"
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 5555
   targetPort: 5555
-  nodePort: 30555
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  host: heart-disease-api.local
+  path: /
+  pathType: Prefix
 
 env:
   - name: MODEL_URI

@@ -6,6 +6,7 @@ Helm chart for deploying the Heart Disease Prediction API on Kubernetes.
 
 - Kubernetes 1.19+
 - Helm 3.0+
+- NGINX Ingress Controller installed in cluster
 
 ## Quick Start
 
@@ -36,12 +37,13 @@ Key configurable parameters in [values.yaml](values.yaml):
 | `replicaCount` | Number of replicas | `2` |
 | `image.repository` | Docker image repository | `bitshub4krishanu/heart-disease-api` |
 | `image.tag` | Image tag | `latest` |
-| `service.type` | Service type (NodePort/ClusterIP/LoadBalancer) | `NodePort` |
-| `service.nodePort` | NodePort for external access | `30555` |
+| `service.type` | Service type | `ClusterIP` |
+| `ingress.enabled` | Enable ingress | `true` |
+| `ingress.className` | Ingress controller class name | `nginx` |
+| `ingress.host` | Ingress hostname | `heart-disease-api.local` |
 | `resources.limits.cpu` | CPU limit | `1000m` |
 | `resources.limits.memory` | Memory limit | `1Gi` |
-| `autoscaling.enabled` | Enable HPA | `true` |
-| `autoscaling.maxReplicas` | Maximum replicas | `5` |
+| `autoscaling.enabled` | Enable HPA | `false` |
 | `env` | Environment variables (MODEL_URI, etc.) | See values.yaml |
 
 ## Customize Installation
@@ -62,42 +64,54 @@ helm install heart-disease-api ./helm-chart \
 
 ## Access the API
 
-**Get service details:**
+**Setup DNS/Hosts Entry:**
+
+For local testing, add to `/etc/hosts`:
 
 ```bash
-kubectl get svc heart-disease-api
+echo "127.0.0.1 heart-disease-api.local" | sudo tee -a /etc/hosts
 ```
 
-**For NodePort (default):**
+**For Minikube:**
 
 ```bash
-# Get node IP
-kubectl get nodes -o wide
-
-# Access at: http://<NODE_IP>:30555
+minikube tunnel
 ```
 
-**Port forward for local testing:**
+**Get Ingress details:**
+
+```bash
+kubectl get ingress
+```
+
+**Access via Ingress:**
+
+```bash
+# Access at: http://heart-disease-api.local
+# Swagger UI: http://heart-disease-api.local/apidocs
+```
+
+**Alternative - Port forward for direct access:**
 
 ```bash
 kubectl port-forward service/heart-disease-api 5555:5555
 
 # Access at: http://localhost:5555
-# Swagger UI: http://localhost:5555/apidocs
 ```
 
 ## Test the Deployment
 
 ```bash
 # Health check
-curl http://localhost:5555/health
+curl http://heart-disease-api.local/health
 
 # Make prediction
-curl -X POST http://localhost:5555/predict \
+curl -X POST http://heart-disease-api.local/predict \
   -H "Content-Type: application/json" \
   -d '{"age": 63, "sex": 1, "cp": 3, "trestbps": 145, "chol": 233,
        "fbs": 1, "restecg": 0, "thalach": 150, "exang": 0,
        "oldpeak": 2.3, "slope": 0, "ca": 0, "thal": 1}'
+```
 ```
 
 ## Monitoring
