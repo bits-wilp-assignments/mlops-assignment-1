@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+# MLOps Demo
 # Add src directory to Python path for imports
 src_dir = Path(__file__).resolve().parent.parent
 if str(src_dir) not in sys.path:
