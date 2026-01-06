@@ -10,6 +10,7 @@ from flask import Flask, request, jsonify
 import pandas as pd
 from flasgger import Swagger
 import yaml
+from prometheus_flask_exporter import PrometheusMetrics
 
 # Use absolute imports from src
 from src.serving.predict import Predictor
@@ -21,6 +22,12 @@ logger = get_logger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Initialize Prometheus metrics
+metrics = PrometheusMetrics(app)
+
+# Add custom metrics
+metrics.info('app_info', 'Application info', version='1.0.0', model='heart_disease_best_model')
 
 # Load Swagger specification from external YAML file
 swagger_spec_path = Path(__file__).parent / "config" / "spec" / "swagger_specs.yaml"
@@ -178,4 +185,4 @@ if __name__ == '__main__':
         logger.warning("App will start but predictions will not work until model is loaded.")
 
     # Run Flask app
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
