@@ -11,6 +11,7 @@ import pandas as pd
 from flasgger import Swagger
 import yaml
 from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import generate_latest, REGISTRY
 
 # Use absolute imports from src
 from src.serving.predict import Predictor
@@ -28,6 +29,7 @@ metrics = PrometheusMetrics(app)
 
 # Add custom metrics
 metrics.info('app_info', 'Application info', version='1.0.0', model='heart_disease_best_model')
+
 
 # Load Swagger specification from external YAML file
 swagger_spec_path = Path(__file__).parent / "config" / "spec" / "swagger_specs.yaml"
@@ -173,6 +175,9 @@ def model_info():
         'status': 'loaded'
     }), 200
 
+@app.route('/metrics')
+def metrics_endpoint():
+    return generate_latest(REGISTRY)
 
 if __name__ == '__main__':
     # Initialize predictor on startup
