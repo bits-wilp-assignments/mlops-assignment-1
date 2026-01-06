@@ -62,20 +62,37 @@ helm install heart-disease-api ./helm-chart \
   --set image.tag=v1.0.0
 ```
 
+**Use NodePort instead of Ingress:**
+
+If you prefer NodePort over Ingress (no NGINX Ingress Controller required):
+
+```bash
+helm install heart-disease-api ./helm-chart \
+  --set ingress.enabled=false \
+  --set service.type=NodePort \
+  --set service.nodePort=30555
+```
+
+Then access at: `http://<NODE_IP>:30555`
+
 ## Access the API
 
-**Setup DNS/Hosts Entry:**
+**Important: Setup Hosts File Entry**
 
-For local testing, add to `/etc/hosts`:
+For local testing, you must add the hostname to your hosts file:
+
+**On Linux/macOS:**
 
 ```bash
 echo "127.0.0.1 heart-disease-api.local" | sudo tee -a /etc/hosts
 ```
 
-**For Minikube:**
+**On Windows:**
 
-```bash
-minikube tunnel
+Open `C:\Windows\System32\drivers\etc\hosts` as Administrator and add:
+
+```
+127.0.0.1 heart-disease-api.local
 ```
 
 **Get Ingress details:**
@@ -91,7 +108,7 @@ kubectl get ingress
 # Swagger UI: http://heart-disease-api.local/apidocs
 ```
 
-**Alternative - Port forward for direct access:**
+**Alternative - Port forward (no hosts file needed):**
 
 ```bash
 kubectl port-forward service/heart-disease-api 5555:5555
