@@ -1,0 +1,8 @@
+prometheus:
+  prometheusSpec:
+    additionalScrapeConfigs:
+      - job_name: 'heart-disease-api'
+        static_configs:
+          - targets: ['192.168.0.178:30555'] # REPLACE with your IP from ipconfig
+        metrics_path: /metrics
+        scrape_interval: 15s
