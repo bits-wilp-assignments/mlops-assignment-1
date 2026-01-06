@@ -232,7 +232,7 @@ def main():
     # Check if service is healthy
     if not check_health():
         print("\nAPI is not available. Please make sure the server is running:")
-        print("   PYTHONPATH=src python src/api/app.py")
+        print("   python -m src.serving.app")
         return
 
     # Get model information

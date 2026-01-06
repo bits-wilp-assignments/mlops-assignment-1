@@ -1,23 +1,27 @@
 # Heart Disease API Helm Chart
 
-A Helm chart for deploying the Heart Disease Prediction API on Kubernetes.
+Helm chart for deploying the Heart Disease Prediction API on Kubernetes.
 
 ## Prerequisites
 
 - Kubernetes 1.19+
 - Helm 3.0+
 
-## Installing the Chart
+## Quick Start
 
-To install the chart with the release name `heart-disease-api`:
+**Install:**
 
 ```bash
 helm install heart-disease-api ./helm-chart
 ```
 
-## Uninstalling the Chart
+**Upgrade:**
 
-To uninstall/delete the `heart-disease-api` deployment:
+```bash
+helm upgrade heart-disease-api ./helm-chart
+```
+
+**Uninstall:**
 
 ```bash
 helm uninstall heart-disease-api
@@ -25,101 +29,83 @@ helm uninstall heart-disease-api
 
 ## Configuration
 
-The following table lists the configurable parameters of the Heart Disease API chart and their default values.
+Key configurable parameters in [values.yaml](values.yaml):
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|
+| --- | --- | --- |
 | `replicaCount` | Number of replicas | `2` |
-| `image.repository` | Image repository | `bitshub4krishanu/heart-disease-api` |
+| `image.repository` | Docker image repository | `bitshub4krishanu/heart-disease-api` |
 | `image.tag` | Image tag | `latest` |
-| `image.pullPolicy` | Image pull policy | `IfNotPresent` |
-| `service.type` | Kubernetes service type | `NodePort` |
-| `service.port` | Service port | `5555` |
-| `service.nodePort` | NodePort (if service type is NodePort) | `30555` |
-| `env` | Environment variables | See `values.yaml` |
+| `service.type` | Service type (NodePort/ClusterIP/LoadBalancer) | `NodePort` |
+| `service.nodePort` | NodePort for external access | `30555` |
 | `resources.limits.cpu` | CPU limit | `1000m` |
 | `resources.limits.memory` | Memory limit | `1Gi` |
-| `resources.requests.cpu` | CPU request | `500m` |
-| `resources.requests.memory` | Memory request | `512Mi` |
+| `autoscaling.enabled` | Enable HPA | `true` |
+| `autoscaling.maxReplicas` | Maximum replicas | `5` |
+| `env` | Environment variables (MODEL_URI, etc.) | See values.yaml |
 
-## Accessing the API
+## Customize Installation
 
-Once deployed, the API will be accessible at:
-
-```
-http://<NODE_IP>:30555
-```
-
-To get the node IP:
+**Using custom values file:**
 
 ```bash
-kubectl get nodes -o wide
+helm install heart-disease-api ./helm-chart -f custom-values.yaml
 ```
 
-### Test the API
+**Using --set flags:**
+
+```bash
+helm install heart-disease-api ./helm-chart \
+  --set replicaCount=3 \
+  --set image.tag=v1.0.0
+```
+
+## Access the API
+
+**Get service details:**
+
+```bash
+kubectl get svc heart-disease-api
+```
+
+**For NodePort (default):**
+
+```bash
+# Get node IP
+kubectl get nodes -o wide
+
+# Access at: http://<NODE_IP>:30555
+```
+
+**Port forward for local testing:**
+
+```bash
+kubectl port-forward service/heart-disease-api 5555:5555
+
+# Access at: http://localhost:5555
+# Swagger UI: http://localhost:5555/apidocs
+```
+
+## Test the Deployment
 
 ```bash
 # Health check
-curl http://<NODE_IP>:30555/health
+curl http://localhost:5555/health
 
-# Model info
-curl http://<NODE_IP>:30555/model-info
-
-# Prediction
-curl -X POST http://<NODE_IP>:30555/predict \
+# Make prediction
+curl -X POST http://localhost:5555/predict \
   -H "Content-Type: application/json" \
-  -d '{
-    "instances": [
-      {
-        "age": 63,
-        "sex": 1,
-        "cp": 3,
-        "trestbps": 145,
-        "chol": 233,
-        "fbs": 1,
-        "restecg": 0,
-        "thalach": 150,
-        "exang": 0,
-        "oldpeak": 2.3,
-        "slope": 0,
-        "ca": 0,
-        "thal": 1
-      }
-    ]
-  }'
+  -d '{"age": 63, "sex": 1, "cp": 3, "trestbps": 145, "chol": 233,
+       "fbs": 1, "restecg": 0, "thalach": 150, "exang": 0,
+       "oldpeak": 2.3, "slope": 0, "ca": 0, "thal": 1}'
 ```
 
-## Customizing the Installation
+## Monitoring
 
-You can override values by creating a custom `values.yaml` file or using `--set`:
-
-```bash
-# Using custom values file
-helm install heart-disease-api ./helm-chart -f custom-values.yaml
-
-# Using --set
-helm install heart-disease-api ./helm-chart \
-  --set replicaCount=3 \
-  --set image.tag=v1.0.0 \
-  --set env[0].value="models:/heart_disease_best_model@staging"
-```
-
-## Upgrading
-
-To upgrade an existing release:
+**Check deployment status:**
 
 ```bash
-helm upgrade heart-disease-api ./helm-chart
-```
-
-## Autoscaling
-
-To enable horizontal pod autoscaling:
-
-```bash
-helm install heart-disease-api ./helm-chart \
-  --set autoscaling.enabled=true \
-  --set autoscaling.minReplicas=2 \
-  --set autoscaling.maxReplicas=10 \
-  --set autoscaling.targetCPUUtilizationPercentage=80
+kubectl get pods
+kubectl get hpa
+kubectl logs -f <pod-name>
 ```
