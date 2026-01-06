@@ -19,7 +19,7 @@ RUN apt-get update && \
 COPY requirements-serving.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-serving.txt
+RUN pip install --no-cache-dir --prefer-binary -r requirements-serving.txt
 
 # Copy source code
 COPY src/ ./src/
