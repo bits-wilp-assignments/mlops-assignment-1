@@ -1,4 +1,5 @@
 import argparse
+import os
 import pandas as pd
 import mlflow
 import mlflow.sklearn
@@ -154,7 +155,6 @@ def main():
         logger.info(f"Random Forest pipeline saved to {rf_pipeline_path}")
 
         # Save parent run ID for evaluation phase
-        import os
         os.makedirs(args.model_output_path, exist_ok=True)
         run_id_path = f"{args.model_output_path}/pipeline_run_id.txt"
         with open(run_id_path, 'w') as f:
