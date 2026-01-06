@@ -1,0 +1,34 @@
+replicaCount: 2
+
+image:
+  repository: bitshub4krishanu/heart-disease-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 5555
+  targetPort: 5555
+  nodePort: 30555
+
+env:
+  - name: MODEL_URI
+    value: "models:/heart_disease_best_model@production"
+  - name: MLFLOW_TRACKING_URI
+    value: "https://cc7ea230ab4e.ngrok-free.app"
+  - name: PORT
+    value: "5555"
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
